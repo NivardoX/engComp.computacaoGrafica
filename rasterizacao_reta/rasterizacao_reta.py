@@ -3,11 +3,11 @@ __version__ = "1.0.0"
 __maintainer__ = "Nivardo Albuquerque"
 __email__ = "nivardo00@gmail.com"
 
+import numpy as np
 import math
-from dataclasses import dataclass
 import matplotlib.pyplot as plt
 
-import numpy as np
+from dataclasses import dataclass
 
 # Uncomment this if the output is too big to be shown
 # np.set_printoptions(threshold=np.inf)
@@ -21,17 +21,18 @@ class Point:
     def __str__(self):
         return "({}, {})".format(self.x, self.y)
 
+    def __mul__(self, other):
+        return Point(self.x * other, self.y * other)
+
 
 class Grid:
 
-    def __init__(self, starting_point, ending_point):
-        self.starting_point: Point = starting_point
-        self.ending_point: Point = ending_point
+    def __init__(self, starting_point, ending_point, resolution_mutiplier=1):
+        self.starting_point: Point = starting_point * resolution_mutiplier
+        self.ending_point: Point = ending_point * resolution_mutiplier
 
-        len_x = max((starting_point.x, ending_point.x))
-        len_y = max((starting_point.y, ending_point.y))
-
-        n = max((len_x, len_y))
+        len_x = max((self.starting_point.x, self.ending_point.x))
+        len_y = max((self.starting_point.y, self.ending_point.y))
 
         self.matrix = np.zeros((len_x + 1, len_y + 1))
 
@@ -118,14 +119,14 @@ class Grid:
     b = {}           
 {}
         """.format(
-            'Line info'.center(20,'='),
+            'Line info'.center(20, '='),
             self.starting_point,
             self.ending_point,
             self.dx,
             self.dy,
             self.m,
             self.b,
-            '='*20
+            '=' * 20
         )
 
 
@@ -143,8 +144,11 @@ def create_fragment(x, y):
 
 
 if __name__ == '__main__':
-    p0 = Point(x=0, y=0)
-    p1 = Point(x=9, y=3)
+    # Increases the size of the matrix by 2^resolution_multiplier
+    resolution_mutiplier = 2
 
-    grid = Grid(p0, p1)
+    p0 = Point(x=0, y=0)
+    p1 = Point(x=15, y=10)
+
+    grid = Grid(p0, p1, resolution_mutiplier=resolution_mutiplier)
     grid.plot_grid()
