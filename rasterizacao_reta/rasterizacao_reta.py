@@ -1,7 +1,3 @@
-"""
-
-"""
-
 __author__ = "Nivardo Albuquerque"
 __version__ = "1.0.0"
 __maintainer__ = "Nivardo Albuquerque"
