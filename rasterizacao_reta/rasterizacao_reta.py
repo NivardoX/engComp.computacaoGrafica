@@ -144,7 +144,7 @@ def create_fragment(x, y):
 
 if __name__ == '__main__':
     p0 = Point(x=0, y=0)
-    p1 = Point(x=100, y=100)
+    p1 = Point(x=9, y=3)
 
     grid = Grid(p0, p1)
     grid.plot_grid()
