@@ -7,7 +7,10 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 
+plt.tight_layout()
+
 from dataclasses import dataclass
+
 
 # Uncomment this if the output is too big to be shown
 # np.set_printoptions(threshold=np.inf)
@@ -25,16 +28,17 @@ class Point:
         return Point(self.x * other, self.y * other)
 
 
-class Grid:
+class Line:
 
     def __init__(self, starting_point, ending_point, resolution_mutiplier=1):
+        self.resolution_mutiplier = resolution_mutiplier
         self.starting_point: Point = starting_point * resolution_mutiplier
         self.ending_point: Point = ending_point * resolution_mutiplier
 
         len_x = max((self.starting_point.x, self.ending_point.x))
         len_y = max((self.starting_point.y, self.ending_point.y))
-
-        self.matrix = np.zeros((len_x + 1, len_y + 1))
+        n = max((len_x, len_y))
+        self.matrix = np.zeros((n + 1, n + 1))
 
     @property
     def dx(self) -> float:
@@ -46,24 +50,30 @@ class Grid:
 
     @property
     def m(self) -> float:
-        return self.dy / self.dx
+        # if dx = 0, the line is vertical
+        return (self.dy / self.dx) if self.dx > 0 else -1
 
     @property
     def b(self) -> float:
         return self.ending_point.y - (self.m * self.ending_point.x)
 
     def calculate_x(self, y):
+
         return (y - self.b) / self.m
 
     def calculate_y(self, x):
-        return self.m * x + self.b
+        # Handles vertical lines
+        if self.m == -1:
+            return self.starting_point.y
+        else:
+            return self.m * x + self.b
 
     def trace_line(self):
         inverse = self.dx > self.dy
 
-        virtual_grid = self.__trace_line(self.matrix, inverse)
+        virtual_line = self.__trace_line(self.matrix, inverse)
 
-        self.matrix = virtual_grid
+        self.matrix = virtual_line
 
     def __trace_line(self, matrix, inverse: bool):
         x_lim, y_lim = matrix.shape
@@ -80,20 +90,21 @@ class Grid:
 
         return matrix
 
-    def plot_grid(self):
+    def plot(self):
+
         self.trace_line()
         print(self)
         print(self.matrix)
-        self.__matplot_grid()
+        self.__matplot_line()
 
-    def __matplot_grid(self):
-        fig, ax = plt.subplots()
-        grid_matrix = self.matrix.T
-        size_x, size_y = grid_matrix.shape
+    def __matplot_line(self):
+        fig, ax = plt.subplots(dpi=80 * math.sqrt(self.resolution_mutiplier))
+        line_matrix = self.matrix.T
+        size_x, size_y = line_matrix.shape
 
         matrix_resolution = max((size_x, size_y))
 
-        ax.imshow(grid_matrix, aspect='equal', origin='lower', cmap='gray_r')
+        ax.imshow(line_matrix, aspect='equal', origin='lower', cmap='gray_r')
         major_ticks = np.arange(0, matrix_resolution, 1)
 
         minor_ticks = np.arange(.5, matrix_resolution, 1)
@@ -103,6 +114,9 @@ class Grid:
 
         ax.set_xticks(minor_ticks, minor=True)
         ax.set_yticks(minor_ticks, minor=True)
+
+        ax.tick_params(axis='both', which='major', labelsize=int(10 / math.sqrt(self.resolution_mutiplier)))
+        plt.xticks(rotation=-90)
 
         ax.grid(color='black', linestyle='-', linewidth=.1, which='minor')
         plt.show()
@@ -144,11 +158,11 @@ def create_fragment(x, y):
 
 
 if __name__ == '__main__':
-    # Increases the size of the matrix by 2^resolution_multiplier
-    resolution_mutiplier = 2
+    # Increases the size of the matrix by resolution_multiplier^2
+    resolution_mutiplier = 10
 
     p0 = Point(x=0, y=0)
-    p1 = Point(x=15, y=10)
+    p1 = Point(x=0, y=10)
 
-    grid = Grid(p0, p1, resolution_mutiplier=resolution_mutiplier)
-    grid.plot_grid()
+    line = Line(p0, p1, resolution_mutiplier=resolution_mutiplier)
+    line.plot()
