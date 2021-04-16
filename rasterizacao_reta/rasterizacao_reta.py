@@ -35,9 +35,18 @@ class Line:
         self.starting_point: Point = starting_point * resolution_mutiplier
         self.ending_point: Point = ending_point * resolution_mutiplier
 
-        len_x = max((self.starting_point.x, self.ending_point.x))
-        len_y = max((self.starting_point.y, self.ending_point.y))
-        n = max((len_x, len_y))
+        xs = [self.starting_point.x, self.ending_point.x]
+        ys = [self.starting_point.y, self.ending_point.y]
+
+        xs.sort()
+        ys.sort()
+
+        # Ordered limits of the line
+        self._min_x, self._max_x = xs
+        self._min_y, self._max_y = ys
+
+        self._len_y = max((self.starting_point.y, self.ending_point.y))
+        n = max((self._max_y, self._max_x))
         self.matrix = np.zeros((n + 1, n + 1))
 
     @property
@@ -50,40 +59,39 @@ class Line:
 
     @property
     def m(self) -> float:
-        # if dx = 0, the line is vertical
-        return (self.dy / self.dx) if self.dx > 0 else -1
+        return (self.dy / self.dx) if (self.dx != 0 and self.dy != 0) else np.inf
 
     @property
     def b(self) -> float:
         return self.ending_point.y - (self.m * self.ending_point.x)
 
     def calculate_x(self, y):
+        # Handles horizontal lines
+        if self.m == np.inf:
+            return self.starting_point.x
 
         return (y - self.b) / self.m
 
     def calculate_y(self, x):
         # Handles vertical lines
-        if self.m == -1:
+        if self.m == np.inf:
             return self.starting_point.y
-        else:
-            return self.m * x + self.b
+        return self.m * x + self.b
 
     def trace_line(self):
-        inverse = self.dx > self.dy
-
+        inverse = abs(self.dx) > abs(self.dy)
         virtual_line = self.__trace_line(self.matrix, inverse)
 
         self.matrix = virtual_line
 
     def __trace_line(self, matrix, inverse: bool):
-        x_lim, y_lim = matrix.shape
         if inverse:
-            for x in range(x_lim):
+            for x in range(self._min_x, self._max_x + 1):
                 y = self.calculate_y(x)
                 x, y = create_fragment(x, y)
                 matrix[x][y] = 1
         else:
-            for y in range(y_lim):
+            for y in range(self._min_y, self._max_y + 1):
                 x = self.calculate_x(y)
                 x, y = create_fragment(x, y)
                 matrix[x][y] = 1
@@ -125,10 +133,10 @@ class Line:
         return """{}
     Starting point = {}
     Ending point = {}
-    
+
     dx = {}
     dy = {}
-    
+
     m = {}
     b = {}           
 {}
@@ -159,10 +167,10 @@ def create_fragment(x, y):
 
 if __name__ == '__main__':
     # Increases the size of the matrix by resolution_multiplier^2
-    resolution_mutiplier = 10
+    resolution_mutiplier = 1
 
     p0 = Point(x=0, y=0)
-    p1 = Point(x=0, y=10)
+    p1 = Point(x=0, y=0)
 
     line = Line(p0, p1, resolution_mutiplier=resolution_mutiplier)
     line.plot()
