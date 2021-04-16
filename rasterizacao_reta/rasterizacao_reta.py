@@ -27,6 +27,9 @@ class Point:
     def __mul__(self, other):
         return Point(self.x * other, self.y * other)
 
+    def __truediv__(self, other):
+        return Point(int(self.x / other), int(self.y / other))
+
 
 class Line:
 
@@ -122,7 +125,11 @@ class Line:
 
         ax.set_xticks(minor_ticks, minor=True)
         ax.set_yticks(minor_ticks, minor=True)
-
+        ax.set_title("{} to {} - resolution {}".format(
+            self.starting_point/self.resolution_mutiplier,
+            self.ending_point/self.resolution_mutiplier,
+            self.resolution_mutiplier
+        ))
         ax.tick_params(axis='both', which='major', labelsize=int(10 / math.sqrt(self.resolution_mutiplier)))
         plt.xticks(rotation=-90)
 
@@ -167,10 +174,11 @@ def create_fragment(x, y):
 
 if __name__ == '__main__':
     # Increases the size of the matrix by resolution_multiplier^2
-    resolution_mutiplier = 1
+    resolution_mutiplier = 3
 
     p0 = Point(x=0, y=0)
-    p1 = Point(x=0, y=0)
+    p1 = Point(x=9, y=3)
 
     line = Line(p0, p1, resolution_mutiplier=resolution_mutiplier)
     line.plot()
+
